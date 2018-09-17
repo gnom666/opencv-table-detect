@@ -1,10 +1,10 @@
 package com.taiger.kp.preprocess.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.poi.ss.formula.eval.IntersectionEval;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -23,6 +23,8 @@ import com.taiger.kp.preprocess.model.Line;
 
 import lombok.extern.java.Log;
 
+import org.springframework.util.Assert;
+
 @Log
 public class Tunner {
 
@@ -37,9 +39,11 @@ public class Tunner {
 	 *            Brightness
 	 * @return Modified image
 	 */
-	public static Mat bright(Mat mat, double alpha, double beta) {
+	public Mat bright(Mat mat, double alpha, double beta) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -57,9 +61,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat invert(Mat mat) {
+	public Mat invert(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -79,9 +85,12 @@ public class Tunner {
 	 *            Limit
 	 * @return Modified image
 	 */
-	public static Mat tuneWhite(Mat mat, double limit) {
+	public Mat tuneWhite(Mat mat, double limit) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(limit >= 0 && limit < 256, "limit should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -94,17 +103,28 @@ public class Tunner {
 	}
 
 	/**
-	 * Changes to white pixels over specified limit
+	 * Changes pixels around specified center
 	 * 
 	 * @param mat
 	 *            Image
-	 * @param limit
-	 *            Limit
-	 * @return Modified image
+	 * @param center
+	 *            Centroid
+	 * @param radio
+	 *            Radius
+	 * @param value
+	 *            New value
+	 * @return Image
 	 */
-	public static Mat tuneWhite(Mat mat, double center, double radio, double value) {
+	public Mat tuneWhite(Mat mat, double center, double radio, double value) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(center >= 0 && center < 256, "center should be between [0;255]");
+		Assert.isTrue(radio >= 0 && radio < 128 && center - radio >= 0 && center + radio < 256,
+				"radio should be between [0;127] and 'center +- radio' inside [0;255]");
+		Assert.isTrue(value >= 0 && value < 256, "value should be between [0;255]");
+
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -123,9 +143,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat bw128(Mat mat) {
+	public Mat bw128(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -146,9 +168,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat bwMedia(Mat mat) {
+	public Mat bwMedia(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		double higher = 0, lower = 255;
 
 		for (int i = 0; i < mat.height(); i++) {
@@ -181,9 +205,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat bwAve(Mat mat) {
+	public Mat bwAve(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		double sum = 0;
 		int qty = mat.height() * mat.width();
 
@@ -213,11 +239,12 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat bwDither(Mat mat) {
-		// System.out.println(mat.height() + " X " + mat.width());
+	public Mat bwDither(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Dither2 dither = new Dither2();
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i += 3) {
 			for (int j = 0; j < mat.width(); j += 3) {
@@ -236,9 +263,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified Image
 	 */
-	public static Mat fatter(Mat mat) {
+	public Mat fatter(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < result.height(); y++) {
@@ -280,9 +309,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat plusFatter(Mat mat) {
+	public Mat plusFatter(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < result.height(); y++) {
@@ -314,9 +345,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat rFatter(Mat mat) {
+	public Mat rFatter(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean down, right;
 
 		for (int y = 0; y < result.height(); y++) {
@@ -342,9 +375,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat killHermits(Mat mat) {
+	public Mat killHermits(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -388,9 +423,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat killCouples(Mat mat) {
+	public Mat killCouples(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -399,32 +436,121 @@ public class Tunner {
 			for (int x = 0; x < mat.width(); x++) {
 				left = x > 0;
 				right = x < mat.width() - 1;
-				if (mat.get(y, x)[0] == 0.0) {
+				if (result.get(y, x)[0] == 0.0) {
 					int neighbours = 0;
-					if (up && mat.get(y - 1, x)[0] == 0.0)
+					if (up && result.get(y - 1, x)[0] == 0.0)
 						neighbours++;
-					if (down && mat.get(y + 1, x)[0] == 0.0)
+					if (down && result.get(y + 1, x)[0] == 0.0)
 						neighbours++;
-					if (left && mat.get(y, x - 1)[0] == 0.0)
+					if (left && result.get(y, x - 1)[0] == 0.0)
 						neighbours++;
-					if (right && mat.get(y, x + 1)[0] == 0.0)
+					if (right && result.get(y, x + 1)[0] == 0.0)
 						neighbours++;
-					if (up && left && mat.get(y - 1, x - 1)[0] == 0.0)
+					if (up && left && result.get(y - 1, x - 1)[0] == 0.0)
 						neighbours++;
-					if (up && right && mat.get(y - 1, x + 1)[0] == 0.0)
+					if (up && right && result.get(y - 1, x + 1)[0] == 0.0)
 						neighbours++;
-					if (down && left && mat.get(y + 1, x - 1)[0] == 0.0)
+					if (down && left && result.get(y + 1, x - 1)[0] == 0.0)
 						neighbours++;
-					if (down && right && mat.get(y + 1, x + 1)[0] == 0.0)
+					if (down && right && result.get(y + 1, x + 1)[0] == 0.0)
 						neighbours++;
 
-					if (neighbours <= 1)
+					if (neighbours <= 2) {
 						result.put(y, x, 255.0);
+					}
 				}
 			}
 		}
+		
+		for (int y = mat.height() - 1; y >= 0; y--) {
+			up = y > 0;
+			down = y < mat.height() - 1;
+			for (int x = mat.width() - 1; x >= 0; x--) {
+				left = x > 0;
+				right = x < mat.width() - 1;
+				if (result.get(y, x)[0] == 0.0) {
+					int neighbours = 0;
+					if (up && result.get(y - 1, x)[0] == 0.0)
+						neighbours++;
+					if (down && result.get(y + 1, x)[0] == 0.0)
+						neighbours++;
+					if (left && result.get(y, x - 1)[0] == 0.0)
+						neighbours++;
+					if (right && result.get(y, x + 1)[0] == 0.0)
+						neighbours++;
+					if (up && left && result.get(y - 1, x - 1)[0] == 0.0)
+						neighbours++;
+					if (up && right && result.get(y - 1, x + 1)[0] == 0.0)
+						neighbours++;
+					if (down && left && result.get(y + 1, x - 1)[0] == 0.0)
+						neighbours++;
+					if (down && right && result.get(y + 1, x + 1)[0] == 0.0)
+						neighbours++;
+
+					if (neighbours <= 2) {
+						result.put(y, x, 255.0);
+					}
+				}
+			}
+		}
+		
 		return result;
 	}
+
+	/*
+	 * public double killCouplesRec (Mat mat, int r, int c, Mat visited) { //Mat
+	 * visited = new Mat(mat.rows(), mat.cols(), CvType.CV_8UC1, new Scalar(255.0));
+	 * 
+	 * //Highgui.imwrite("/Users/jorge.rios/Work/visited.jpg", visited);
+	 * 
+	 * boolean left, up, down, right;
+	 * 
+	 * up = r > 0; down = r < mat.height() - 1; left = c > 0; right = c <
+	 * mat.width() - 1;
+	 * 
+	 * visited.put(r, c, 0.0);
+	 * 
+	 * int neighbours = 0;
+	 * 
+	 * if (left && up && visited.get(r-1, c-1)[0] == 0.0) { if (mat.get(r-1, c-1)[0]
+	 * == 0.0) { neighbours++; } } if (left && up && visited.get(r-1, c-1)[0] !=
+	 * 0.0) { if (killCouplesRec(mat, r-1, c-1, visited) == 0.0) { neighbours++; } }
+	 * 
+	 * if (up && visited.get(r-1, c)[0] == 0.0) { if (mat.get(r-1, c)[0] == 0.0) {
+	 * neighbours++; } } if (up && visited.get(r-1, c)[0] != 0.0) { if
+	 * (killCouplesRec(mat, r-1, c, visited) == 0.0) { neighbours++; } }
+	 * 
+	 * if (up && right && visited.get(r-1, c+1)[0] == 0.0) { if (mat.get(r-1,
+	 * c+1)[0] == 0.0) { neighbours++; } } if (up && right && visited.get(r-1,
+	 * c+1)[0] != 0.0) { if (killCouplesRec(mat, r-1, c+1, visited) == 0.0) {
+	 * neighbours++; } }
+	 * 
+	 * if (left && visited.get(r, c-1)[0] == 0.0) { if (mat.get(r, c-1)[0] == 0.0) {
+	 * neighbours++; } } if (left && visited.get(r, c-1)[0] != 0.0) { if
+	 * (killCouplesRec(mat, r, c-1, visited) == 0.0) { neighbours++; } }
+	 * 
+	 * if (right && visited.get(r, c+1)[0] == 0.0) { if (mat.get(r, c+1)[0] == 0.0)
+	 * { neighbours++; } } if (right && visited.get(r, c+1)[0] != 0.0) { if
+	 * (killCouplesRec(mat, r, c+1, visited) == 0.0) { neighbours++; } }
+	 * 
+	 * if (left && down && visited.get(r+1, c-1)[0] == 0.0) { if (mat.get(r+1,
+	 * c-1)[0] == 0.0) { neighbours++; } } if (left && down && visited.get(r+1,
+	 * c-1)[0] != 0.0) { if (killCouplesRec(mat, r+1, c-1, visited) == 0.0) {
+	 * neighbours++; } }
+	 * 
+	 * if (down && visited.get(r+1, c)[0] == 0.0) { if (mat.get(r+1, c)[0] == 0.0) {
+	 * neighbours++; } } if (down && visited.get(r+1, c)[0] != 0.0) { if
+	 * (killCouplesRec(mat, r+1, c, visited) == 0.0) { neighbours++; } }
+	 * 
+	 * if (down && right && visited.get(r+1, c+1)[0] == 0.0) { if (mat.get(r+1,
+	 * c+1)[0] == 0.0) { neighbours++; } } if (down && right && visited.get(r+1,
+	 * c+1)[0] != 0.0) { if (killCouplesRec(mat, r+1, c+1, visited) == 0.0) {
+	 * neighbours++; } }
+	 * 
+	 * if (neighbours <= 1) { mat.put(r, c, 255.0); }
+	 * 
+	 * return mat.get(r, c)[0]; }
+	 */
 
 	/**
 	 * Changes to black white pixels with three or more black pixels
@@ -433,9 +559,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat filler(Mat mat) {
+	public Mat filler(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -464,7 +592,7 @@ public class Tunner {
 					if (down && right && mat.get(y + 1, x + 1)[0] == 0.0)
 						neighbours++;
 
-					if (neighbours >= 3)
+					if (neighbours >= 5)
 						result.put(y, x, 0.0);
 				}
 			}
@@ -481,9 +609,12 @@ public class Tunner {
 	 *            Limit
 	 * @return Modified image
 	 */
-	public static Mat bwFloydSteinberg(Mat mat, double limit) {
+	public Mat bwFloydSteinberg(Mat mat, double limit) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -522,9 +653,12 @@ public class Tunner {
 	 *            Limit
 	 * @return Modified image
 	 */
-	public static Mat bwFloydSteinbergFL(Mat mat, double limit) {
+	public Mat bwFloydSteinbergFL(Mat mat, double limit) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -561,9 +695,12 @@ public class Tunner {
 	 *            Limit
 	 * @return Modified image
 	 */
-	public static Mat bwAtkinson(Mat mat, double limit) {
+	public Mat bwAtkinson(Mat mat, double limit) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -606,8 +743,10 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat denoiseColor(Mat mat) {
+	public Mat denoiseColor(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Photo.fastNlMeansDenoisingColored(mat, result);
 
@@ -621,8 +760,10 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat denoise(Mat mat) {
+	public Mat denoise(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Photo.fastNlMeansDenoising(mat, result);
 
@@ -636,10 +777,12 @@ public class Tunner {
 	 *            Image
 	 */
 	public static void histogram(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		// Calculate histogram
 		java.util.List<Mat> matList = new LinkedList<Mat>();
 		matList.add(mat);
 		Mat histogram = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		MatOfFloat ranges = new MatOfFloat(0, 256);
 		MatOfInt histSize = new MatOfInt(255);
 		Imgproc.calcHist(matList, new MatOfInt(0), new Mat(), histogram, histSize, ranges);
@@ -665,8 +808,10 @@ public class Tunner {
 	 *            Image
 	 */
 	public static void histogram2(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
@@ -684,7 +829,7 @@ public class Tunner {
 			}
 		}
 
-		Highgui.imwrite("/Users/jorge.rios/Work/histogram_h.jpg", result);
+		// Highgui.imwrite("/Users/jorge.rios/Work/histogram_h.jpg", result);
 	}
 
 	/**
@@ -694,8 +839,10 @@ public class Tunner {
 	 *            Image
 	 */
 	public static void histogram3(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int x = 0; x < mat.width(); x++) {
 			for (int y = mat.height() - 1; y > 0; y--) {
@@ -713,7 +860,7 @@ public class Tunner {
 			}
 		}
 
-		Highgui.imwrite("/Users/jorge.rios/Work/histogram_v.jpg", result);
+		// Highgui.imwrite("/Users/jorge.rios/Work/histogram_v.jpg", result);
 	}
 
 	/**
@@ -723,9 +870,11 @@ public class Tunner {
 	 *            Image
 	 * @return Modified image
 	 */
-	public static Mat grayscale(Mat mat) {
+	public Mat grayscale(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat tmp = new Mat();
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
 		for (int y = 0; y < mat.height(); y++) {
@@ -744,8 +893,10 @@ public class Tunner {
 	 *            Image
 	 * @return Modified Image
 	 */
-	public static Mat invertColor(Mat mat) {
+	public Mat invertColor(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC3);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
@@ -758,13 +909,17 @@ public class Tunner {
 	}
 
 	/**
+	 * Finds the vertical lines on the image
 	 * 
-	 * @param bw
-	 * @return
+	 * @param mat
+	 *            Image
+	 * @return Image with only vertical lines
 	 */
-	public static Mat getVerticalLines(Mat bw) {
+	public Mat getVerticalLines(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
-		Mat vertical = bw.clone();
+		Mat vertical = mat.clone();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		try {
 
@@ -783,10 +938,10 @@ public class Tunner {
 			// Highgui.imwrite("/Users/jorge.rios/Work/ev.jpg", vertical);
 
 			Imgproc.dilate(vertical, vertical, verticalStructure, new Point(-1, -1), 3);
-			Highgui.imwrite("/Users/jorge.rios/Work/dv.jpg", vertical);
+			// Highgui.imwrite("/Users/jorge.rios/Work/dv.jpg", vertical);
 			result = vertical.clone();
 
-			// verticalStructure.release();
+			verticalStructure.release();
 
 		} catch (Exception e) {
 			log.severe(e.getMessage());
@@ -795,8 +950,17 @@ public class Tunner {
 		return result;
 	}
 
-	public static Mat getHorizontalLines(Mat mat) {
+	/**
+	 * Finds the horizontal lines on the image
+	 * 
+	 * @param mat
+	 *            Image
+	 * @return Image with only horizontal lines
+	 */
+	public Mat getHorizontalLines(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat horizontal = mat.clone();
 
 		try {
@@ -816,10 +980,10 @@ public class Tunner {
 			// Highgui.imwrite("/Users/jorge.rios/Work/eh.jpg", horizontal);
 
 			Imgproc.dilate(horizontal, horizontal, horizontalStructure, new Point(-1, -1), 3);
-			Highgui.imwrite("/Users/jorge.rios/Work/dh.jpg", horizontal);
+			// Highgui.imwrite("/Users/jorge.rios/Work/dh.jpg", horizontal);
 			result = horizontal.clone();
 
-			// horizontalStructure.release();
+			horizontalStructure.release();
 
 		} catch (Exception e) {
 			log.severe(e.getMessage());
@@ -828,8 +992,15 @@ public class Tunner {
 		return result;
 	}
 
-	public static Mat intersectLines(Mat mat) {
+	/**
+	 * Intersect lines
+	 * @param mat Image not inverted
+	 * @return Image 0with horizontal and vertical lines
+	 */
+	public Mat intersectLines(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = mat.clone();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		Mat h = getHorizontalLines(mat);
 
@@ -847,8 +1018,15 @@ public class Tunner {
 		return result;
 	}
 
-	public static Mat sumLines(Mat mat) {
+	/**
+	 * 
+	 * @param mat Image inverted
+	 * @return
+	 */
+	public Mat sumLines(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = mat.clone();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		Mat h = getHorizontalLines(mat);
 
@@ -865,9 +1043,18 @@ public class Tunner {
 
 		return result;
 	}
-	
-	public static Mat sumLines(Mat v, Mat h) {
+
+	/**
+	 * 
+	 * @param v
+	 * @param h
+	 * @return
+	 */
+	public Mat sumLines(Mat v, Mat h) {
+		Assert.notNull(v, "'v' shouldn't be null");
+		Assert.notNull(h, "'h' shouldn't be null");
 		Mat result = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		v.copyTo(result);
 
 		for (int y = 0; y < result.height(); y++) {
@@ -883,31 +1070,32 @@ public class Tunner {
 
 		return result;
 	}
-	
-	public static Mat cleanLines(Mat mat) {
-		
+
+	public Mat cleanLines(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		Highgui.imwrite("/Users/jorge.rios/Work/tmp.jpg", result);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		// Highgui.imwrite("/Users/jorge.rios/Work/tmp.jpg", result);
 		boolean found = false;
-		
+
 		for (int y = 0; y < result.height() && !found; y++) {
 			found = isWhiteH(mat, y);
 			for (int x = 0; x < result.width() && !found; x++) {
 				result.put(y, x, 0.0);
 			}
 		}
-		Highgui.imwrite("/Users/jorge.rios/Work/tmp1.jpg", result);
-		
+		// Highgui.imwrite("/Users/jorge.rios/Work/tmp1.jpg", result);
+
 		found = false;
-		for (int y = result.height()-1; y >= 0 && !found; y--) {
+		for (int y = result.height() - 1; y >= 0 && !found; y--) {
 			found = isWhiteH(mat, y);
 			for (int x = 0; x < result.width() && !found; x++) {
 				result.put(y, x, 0.0);
 			}
 		}
-		Highgui.imwrite("/Users/jorge.rios/Work/tmp2.jpg", result);
-		
+		// Highgui.imwrite("/Users/jorge.rios/Work/tmp2.jpg", result);
+
 		found = false;
 		for (int x = 0; x < result.width() && !found; x++) {
 			found = isWhiteV(mat, x);
@@ -915,247 +1103,437 @@ public class Tunner {
 				result.put(y, x, 0.0);
 			}
 		}
-		Highgui.imwrite("/Users/jorge.rios/Work/tmp3.jpg", result);
-		
+		// Highgui.imwrite("/Users/jorge.rios/Work/tmp3.jpg", result);
+
 		found = false;
-		for (int x = result.width()-1; x >= 0  && !found; x--) {
+		for (int x = result.width() - 1; x >= 0 && !found; x--) {
 			found = isWhiteV(mat, x);
 			for (int y = 0; y < result.height() && !found; y++) {
 				result.put(y, x, 0.0);
 			}
 		}
-		Highgui.imwrite("/Users/jorge.rios/Work/tmp4.jpg", result);
+		// Highgui.imwrite("/Users/jorge.rios/Work/tmp4.jpg", result);
 
 		return result;
 	}
-	
+
 	private static boolean isWhiteH(Mat mat, int y) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		for (int x = 0; x < mat.width(); x++) {
-			if (mat.get(y, x)[0] == 0.0) return false;
+			if (mat.get(y, x)[0] == 0.0)
+				return false;
 		}
 		return true;
 	}
-	
+
 	private static boolean isWhiteV(Mat mat, int x) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		for (int y = 0; y < mat.height(); y++) {
-			if (mat.get(y, x)[0] == 0.0) return false;
+			if (mat.get(y, x)[0] == 0.0)
+				return false;
 		}
 		return true;
 	}
-	
-	public static Mat lines(Mat mat) {
-		int alpha = 3;
-		int beta = 5;
-		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		
-		Mat v = getVerticalLines(mat); 
+
+	public Mat lines(Mat mat, int index) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		int alpha = 20;
+		int beta = 20;
+		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(0.0));
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+
+		Mat v = getVerticalLines(mat);
+		Highgui.imwrite("/Users/jorge.rios/Work/v" + index + ".png", v);
 		Mat h = getHorizontalLines(mat);
-		
-		Mat vLong = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		Mat hLong = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		
+		Highgui.imwrite("/Users/jorge.rios/Work/h" + index + ".png", h);
+
 		List<MatOfPoint> vcontours = new ArrayList<MatOfPoint>();
-		Imgproc.findContours(v, vcontours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		Mat tmp = new Mat();
+		Imgproc.findContours(v, vcontours, tmp, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		Highgui.imwrite("/Users/jorge.rios/Work/tmpv" + index + ".png", tmp);
+		tmp.release();
+
 		List<MatOfPoint> hcontours = new ArrayList<MatOfPoint>();
+		tmp = new Mat();
 		Imgproc.findContours(h, hcontours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-		
+		Highgui.imwrite("/Users/jorge.rios/Work/tmph" + index + ".png", tmp);
+		tmp.release();
+
+		v.release();
+		h.release();
+
 		List<Line> vLines = new LinkedList<>();
 		List<Line> hLines = new LinkedList<>();
-		
+
 		for (MatOfPoint c : hcontours) {
-			int minx = (int)lineMinX(c);
-			int maxx = (int)lineMaxX(c);
-			int y = (int)lineY(c);
+			// System.out.println(c.dump());
+			int minx = (int) lineMinX(c);
+			int maxx = (int) lineMaxX(c);
+			int y = (int) lineY(c);
 			hLines.add(new Line(y, minx, maxx));
 		}
-		
+
 		for (MatOfPoint c : vcontours) {
-			int miny = (int)lineMinY(c);
-			int maxy = (int)lineMaxY(c);
-			int x = (int)lineX(c);
+			// System.out.println(c.dump());
+			int miny = (int) lineMinY(c);
+			int maxy = (int) lineMaxY(c);
+			int x = (int) lineX(c);
 			vLines.add(new Line(x, miny, maxy));
 		}
-		
+
 		List<Line> vFinalLines = new LinkedList<>();
 		List<Line> hFinalLines = new LinkedList<>();
-		
+
 		for (Line hl : hLines) {
-			boolean foundIntersection = false;
-			for (int i = 0; i < vLines.size() && !foundIntersection; i++) {
-				if (vLines.get(i).getBegin() - beta <= hl.getConstant() &&
-					hl.getConstant() <= vLines.get(i).getEnd() + beta &&
-					hl.getBegin() - alpha <= vLines.get(i).getConstant() &&
-					vLines.get(i).getConstant() <= hl.getEnd() + alpha) {
-					//foundIntersection = true;
-					hFinalLines.add(hl);
-					
-					vFinalLines.add(vLines.get(i));
+			int foundIntersection = 0;
+			for (int i = 0; i < vLines.size() && foundIntersection <= 1; i++) {
+				if (vLines.get(i).getBegin() - beta <= hl.getConstant()
+						&& hl.getConstant() <= vLines.get(i).getEnd() + beta
+						&& hl.getBegin() - alpha <= vLines.get(i).getConstant()
+						&& vLines.get(i).getConstant() <= hl.getEnd() + alpha) {
+					foundIntersection++;
+				}
+				if (foundIntersection > 1) {
+					boolean tooNear = false;
+					for (int j = 0; j < hFinalLines.size() && !tooNear; j++) {
+						tooNear = hFinalLines.get(j).tooNear(hl);
+					}
+					if (!tooNear)
+						hFinalLines.add(hl);
+
+					tooNear = false;
+					for (int j = 0; j < vFinalLines.size() && !tooNear; j++) {
+						tooNear = vFinalLines.get(j).tooNear(vLines.get(i));
+					}
+					if (!tooNear)
+						vFinalLines.add(vLines.get(i));
 				}
 			}
 		}
 		/*
-		for (Line vl : vLines) {
-			boolean foundIntersection = false;
-			for (int i = 0; i < hLines.size() && !foundIntersection; i++) {
-				if (hLines.get(i).getBegin() - alpha <= vl.getConstant() &&
-					vl.getConstant() <= hLines.get(i).getEnd() + alpha &&
-					vl.getBegin() - alpha <= hLines.get(i).getConstant() &&
-					hLines.get(i).getConstant() <= vl.getEnd() + alpha) {
-					foundIntersection = true;
-					vFinalLines.add(vl);
-				}
-			}
-		}*/
-		
+		 * for (Line vl : vLines) { boolean foundIntersection = false; for (int i = 0; i
+		 * < hLines.size() && !foundIntersection; i++) { if (hLines.get(i).getBegin() -
+		 * alpha <= vl.getConstant() && vl.getConstant() <= hLines.get(i).getEnd() +
+		 * alpha && vl.getBegin() - alpha <= hLines.get(i).getConstant() &&
+		 * hLines.get(i).getConstant() <= vl.getEnd() + alpha) { foundIntersection =
+		 * true; vFinalLines.add(vl); } } }
+		 */
+
 		for (Line hl : hFinalLines) {
 			int y = hl.getConstant();
-			for (int x = 0; x < result.width(); x++) { 
-				if (y != -1) result.put(y, x, 255.0); 
-				if (y > 0) result.put(y-1, x, 255.0);
-				if (y < result.height()-1) result.put(y+1, x, 255.0);
-				
-				//if (y > 1) result.put(y-2, x, 255.0);
-				if (y < result.height()-2) result.put(y+2, x, 255.0);
+			for (int x = 0; x < result.width(); x++) {
+				if (y != -1)
+					result.put(y, x, 255.0);
+				if (y > 0)
+					result.put(y - 1, x, 255.0);
+				if (y < result.height() - 1)
+					result.put(y + 1, x, 255.0);
+
+				// if (y > 1) result.put(y-2, x, 255.0);
+				// if (y < result.height()-2) result.put(y+2, x, 255.0);
 			}
 		}
-		
+
 		for (Line vl : vFinalLines) {
 			int x = vl.getConstant();
-			for (int y = 0; y < result.height(); y++) { 
-				if (x != -1) result.put(y, x, 255.0); 
-				if (x > 0) result.put(y, x-1, 255.0);
-				if (x < result.width()-1) result.put(y, x+1, 255.0);
-				
-				//if (x > 1) result.put(y, x-2, 255.0);
-				if (x < result.width()-2) result.put(y, x+2, 255.0);
+			for (int y = 0; y < result.height(); y++) {
+				if (x != -1)
+					result.put(y, x, 255.0);
+				if (x > 0)
+					result.put(y, x - 1, 255.0);
+				if (x < result.width() - 1)
+					result.put(y, x + 1, 255.0);
+
+				// if (x > 1) result.put(y, x-2, 255.0);
+				// if (x < result.width()-2) result.put(y, x+2, 255.0);
 			}
 		}
-		
-		Highgui.imwrite("/Users/jorge.rios/Work/lines.jpg", result);
+
+		// Highgui.imwrite("/Users/jorge.rios/Work/lines" + iCount++ + ".jpg", result);
 		return result;
 	}
 
-	public static Mat vLines(Mat mat, List<Integer> linesX) {
-		if (linesX == null) return null;
+	public Mat linesStretch(Mat mat, int index) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		int alpha = 20;
+		int beta = 20;
+		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(0.0));
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+
+		Mat v = getVerticalLines(mat);
+		Highgui.imwrite("/Users/jorge.rios/Work/v" + index + ".png", v);
+		Mat h = getHorizontalLines(mat);
+		Highgui.imwrite("/Users/jorge.rios/Work/h" + index + ".png", h);
+
+		List<MatOfPoint> vcontours = new ArrayList<MatOfPoint>();
+		Mat tmp = new Mat();
+		Imgproc.findContours(v, vcontours, tmp, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		tmp.release();
+
+		List<MatOfPoint> hcontours = new ArrayList<MatOfPoint>();
+		tmp = new Mat();
+		Imgproc.findContours(h, hcontours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		tmp.release();
+
+		v.release();
+		h.release();
+
+		List<Line> vLines = new LinkedList<>();
+		List<Line> hLines = new LinkedList<>();
+
+		for (MatOfPoint c : hcontours) {
+			// System.out.println(c.dump());
+			int minx = (int) lineMinX(c);
+			int maxx = (int) lineMaxX(c);
+			int y = (int) lineY(c);
+			hLines.add(new Line(y, minx, maxx));
+		}
+
+		for (MatOfPoint c : vcontours) {
+			// System.out.println(c.dump());
+			int miny = (int) lineMinY(c);
+			int maxy = (int) lineMaxY(c);
+			int x = (int) lineX(c);
+			vLines.add(new Line(x, miny, maxy));
+		}
+
+		List<Line> vFinalLines = new LinkedList<>();
+		List<Line> hFinalLines = new LinkedList<>();
+
+		Collections.sort(hLines);
+		Collections.sort(vLines);
+
+		if (!hLines.isEmpty())
+			hFinalLines.add(hLines.get(0));
+		for (int i = 1; i < hLines.size(); i++) {
+			Line li = hLines.get(i);
+			boolean added = false;
+			for (int j = 0; j < hFinalLines.size() && !added; j++) {
+				Line lj = hFinalLines.get(j);
+
+				if (li.tooNear(lj)) {
+					Line composed = composeLines(li, lj);
+					lj.setConstant(composed.getConstant());
+					lj.setBegin(composed.getBegin());
+					lj.setEnd(composed.getEnd());
+					added = true;
+				}
+			}
+			if (!added)
+				hFinalLines.add(li);
+		}
+
+		if (!vLines.isEmpty())
+			vFinalLines.add(vLines.get(0));
+		for (int i = 1; i < vLines.size(); i++) {
+			Line li = vLines.get(i);
+			boolean added = false;
+			for (int j = 0; j < vFinalLines.size() && !added; j++) {
+				Line lj = vFinalLines.get(j);
+
+				if (li.tooNear(lj)) {
+					Line composed = composeLines(li, lj);
+					lj.setConstant(composed.getConstant());
+					lj.setBegin(composed.getBegin());
+					lj.setEnd(composed.getEnd());
+					added = true;
+				}
+			}
+			if (!added)
+				vFinalLines.add(li);
+		}
+
+		Collections.sort(hFinalLines);
+		Collections.sort(vFinalLines);
+
+		for (Line hl : hFinalLines) {
+			int y = hl.getConstant();
+			for (int x = hl.getBegin(); x < hl.getEnd(); x++) {
+				if (y != -1)
+					result.put(y, x, 255.0);
+				if (y > 0)
+					result.put(y - 1, x, 255.0);
+				if (y < result.height() - 1)
+					result.put(y + 1, x, 255.0);
+
+				/*if (y > 1)
+					result.put(y - 2, x, 255.0);
+				if (y < result.height() - 2)
+					result.put(y + 2, x, 255.0);*/
+			}
+		}
+
+		for (Line vl : vFinalLines) {
+			int x = vl.getConstant();
+			for (int y = vl.getBegin(); y < vl.getEnd(); y++) {
+				if (x != -1)
+					result.put(y, x, 255.0);
+				if (x > 0)
+					result.put(y, x - 1, 255.0);
+				if (x < result.width() - 1)
+					result.put(y, x + 1, 255.0);
+
+				/*if (x > 1)
+					result.put(y, x - 2, 255.0);
+				if (x < result.width() - 2)
+					result.put(y, x + 2, 255.0);*/
+			}
+		}
+
+		// Highgui.imwrite("/Users/jorge.rios/Work/lines" + iCount++ + ".jpg", result);
+		return result;
+	}
+
+	private Line composeLines(Line l1, Line l2) {
+		Assert.notNull(l1, "'l1' shouldn't be null");
+		Assert.notNull(l2, "'l2' shouldn't be null");
+		int constant = (l1.getConstant() + l2.getConstant()) / 2;
+		int begin = l1.getBegin() < l2.getBegin() ? l1.getBegin() : l2.getBegin();
+		int end = l1.getEnd() > l2.getEnd() ? l1.getEnd() : l2.getEnd();
+
+		return new Line(constant, begin, end);
+	}
+
+	public Mat vLines(Mat mat, List<Integer> linesX) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.notNull(linesX, "'linesX' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(v, contours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
 		int counter = 0;
 		for (MatOfPoint c : contours) {
-			/*int x1 = (int) c.get(0, 0)[1];
-			int y1 = (int) c.get(0, 0)[0];
-			int x2 = (int) c.get(c.height() - 1, 0)[1];
-			int y2 = (int) c.get(c.height() - 1, 0)[0];*/
-			int x = (int)lineX(c); 
-			System.out.println(c.dump());
-			for (int y = 0; y < result.height(); y++) { 
-				if (x != -1) result.put(y, x, 255.0); 
-				if (x > 0) result.put(y, x-1, 255.0);
-				if (x < result.width()-1) result.put(y, x+1, 255.0);
+			/*
+			 * int x1 = (int) c.get(0, 0)[1]; int y1 = (int) c.get(0, 0)[0]; int x2 = (int)
+			 * c.get(c.height() - 1, 0)[1]; int y2 = (int) c.get(c.height() - 1, 0)[0];
+			 */
+			int x = (int) lineX(c);
+			for (int y = 0; y < result.height(); y++) {
+				if (x != -1)
+					result.put(y, x, 255.0);
+				if (x > 0)
+					result.put(y, x - 1, 255.0);
+				if (x < result.width() - 1)
+					result.put(y, x + 1, 255.0);
 				linesX.add(x);
 			}
 		}
-		
-		Highgui.imwrite("/Users/jorge.rios/Work/vlines.jpg", result);
+
+		// Highgui.imwrite("/Users/jorge.rios/Work/vlines.jpg", result);
 
 		return result;
 	}
 
-	public static Mat hLines(Mat mat, List<Integer> linesY) {
-		if (linesY == null) return null;
+	public Mat hLines(Mat mat, List<Integer> linesY) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.notNull(linesY, "'linesY' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat h = getHorizontalLines(mat);
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(h, contours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
 
 		int counter = 0;
 		for (MatOfPoint c : contours) {
-			int minx = (int)lineMinX(c);
-			int maxx = (int)lineMaxX(c);
-			int y = (int)lineY(c);
+			int minx = (int) lineMinX(c);
+			int maxx = (int) lineMaxX(c);
+			int y = (int) lineY(c);
 			System.out.println(c.dump());
-			for (int x = 0; x < result.width(); x++) { 
-				if (y != -1) result.put(y, x, 255.0); 
-				if (y > 0) result.put(y-1, x, 255.0);
-				if (y < result.height()-1) result.put(y+1, x, 255.0);
+			for (int x = 0; x < result.width(); x++) {
+				if (y != -1)
+					result.put(y, x, 255.0);
+				if (y > 0)
+					result.put(y - 1, x, 255.0);
+				if (y < result.height() - 1)
+					result.put(y + 1, x, 255.0);
 				linesY.add(y);
 			}
 		}
-		
-		Highgui.imwrite("/Users/jorge.rios/Work/hlines.jpg", result);
+
+		// Highgui.imwrite("/Users/jorge.rios/Work/hlines.jpg", result);
 
 		return result;
 	}
 
-	private static double lineY(MatOfPoint c) {
+	private double lineY(MatOfPoint c) {
 		double sum = 0.0;
 		for (int i = 0; i < c.height(); i++) {
 			sum += c.get(i, 0)[1];
 		}
 		return sum / c.height();
 	}
-	
-	private static double lineX(MatOfPoint c) {
+
+	private double lineX(MatOfPoint c) {
 		double sum = 0.0;
 		for (int i = 0; i < c.height(); i++) {
 			sum += c.get(i, 0)[0];
 		}
 		return sum / c.height();
 	}
-	
-	private static double lineMinX(MatOfPoint c) {
-		if (c == null || c.height() == 0) return 0.0;
+
+	private double lineMinX(MatOfPoint c) {
+		if (c == null || c.height() == 0)
+			return 0.0;
 		double min = c.get(0, 0)[0];
 		for (int i = 1; i < c.height(); i++) {
-			if (c.get(i, 0)[0] < min) min = c.get(i, 0)[0];
+			if (c.get(i, 0)[0] < min)
+				min = c.get(i, 0)[0];
 		}
 		return min;
 	}
-	
-	private static double lineMaxX(MatOfPoint c) {
-		if (c == null || c.height() == 0) return 0.0;
+
+	private double lineMaxX(MatOfPoint c) {
+		if (c == null || c.height() == 0)
+			return 0.0;
 		double max = c.get(0, 0)[0];
 		for (int i = 1; i < c.height(); i++) {
-			if (c.get(i, 0)[0] > max) max = c.get(i, 0)[0];
-		}
-		return max;
-	}
-	
-	private static double lineMinY(MatOfPoint c) {
-		if (c == null || c.height() == 0) return 0.0;
-		double min = c.get(0, 0)[1];
-		for (int i = 1; i < c.height(); i++) {
-			if (c.get(i, 0)[1] < min) min = c.get(i, 0)[1];
-		}
-		return min;
-	}
-	
-	private static double lineMaxY(MatOfPoint c) {
-		if (c == null || c.height() == 0) return 0.0;
-		double max = c.get(0, 0)[1];
-		for (int i = 1; i < c.height(); i++) {
-			if (c.get(i, 0)[1] > max) max = c.get(i, 0)[1];
+			if (c.get(i, 0)[0] > max)
+				max = c.get(i, 0)[0];
 		}
 		return max;
 	}
 
-	private static double lineY(double x1, double y1, double x2, double y2, double x) {
+	private double lineMinY(MatOfPoint c) {
+		if (c == null || c.height() == 0)
+			return 0.0;
+		double min = c.get(0, 0)[1];
+		for (int i = 1; i < c.height(); i++) {
+			if (c.get(i, 0)[1] < min)
+				min = c.get(i, 0)[1];
+		}
+		return min;
+	}
+
+	private double lineMaxY(MatOfPoint c) {
+		if (c == null || c.height() == 0)
+			return 0.0;
+		double max = c.get(0, 0)[1];
+		for (int i = 1; i < c.height(); i++) {
+			if (c.get(i, 0)[1] > max)
+				max = c.get(i, 0)[1];
+		}
+		return max;
+	}
+
+	private double lineY(double x1, double y1, double x2, double y2, double x) {
 		if (x1 == x2)
 			return -1;
 		return (y2 - y1) * (x - x1) / (x2 - x1) + y1;
 	}
 
-	private static double lineX(double x1, double y1, double x2, double y2, double y) {
+	private double lineX(double x1, double y1, double x2, double y2, double y) {
 		if (y1 == y2)
 			return -1;
 		return (x2 - x1) * (y - y1) / (y2 - y1) + x1;
 	}
 
-	public static Mat imageThresholding(Mat gray) {
+	public Mat imageThresholding(Mat gray) {
+		Assert.notNull(gray, "'gray' shouldn't be null");
 
 		Mat bw = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		try {
 			// Apply adaptiveThreshold at the bitwise_not of gray
 
@@ -1174,17 +1552,79 @@ public class Tunner {
 		return bw;
 	}
 
-	public static Mat fusion(Mat original, Mat mat) {
-		Mat result = new Mat();
-		original.copyTo(result);
+	public Mat fusion(Mat original, Mat mat) {
+		Assert.notNull(original, "'original' shouldn't be null");
+		Assert.notNull(mat, "'mat' shouldn't be null");
 		
+		Mat result = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		original.copyTo(result);
+
 		for (int y = 0; y < result.height(); y++) {
 			for (int x = 0; x < result.width(); x++) {
-				if (mat.get(y, x)[0] == 0.0) 
+				if (mat.get(y, x)[0] == 0.0)
 					result.put(y, x, 0.0);
 			}
 		}
-		
+
+		return result;
+	}
+
+	public boolean isBW(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Mat tmp = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
+
+		for (int y = 0; y < mat.height(); y++) {
+			for (int x = 0; x < mat.width(); x++) {
+				if (tmp.get(y, x)[0] != 0.0 && tmp.get(y, x)[0] != 255.0) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public boolean isEmptyBox(Mat mat, int frame) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(frame >= 0 && frame < 51, "frame should be between [0;50]");
+		Mat tmp = new Mat();
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
+		tmp = killHermits(tmp);
+
+		for (int y = frame; y < mat.height() - frame; y++) {
+			for (int x = frame; x < mat.width() - frame; x++) {
+				if (tmp.get(y, x)[0] == 0.0) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public Mat rotate(Mat mat) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		int cx = mat.width() / 2;
+		int cy = mat.height() / 2;
+		double theta = Math.toRadians(90);
+		Mat result = new Mat(mat.width(), mat.height(), CvType.CV_8UC1, new Scalar(255.0));
+		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		// x' = cx + (x-cx) * Cos(theta) - (y-cy) * Sin(theta)
+		// y' = cy + (x-cx) * Sin(theta) + (y-cy) * Cos(theta)
+
+		for (int y = 0; y < mat.height(); y++) {
+			for (int x = 0; x < mat.width(); x++) {
+				int xp = (int) Math.round(cy + (x - cx) * Math.cos(theta) - (y - cy) * Math.sin(theta));
+				int yp = (int) Math.round(cx + (x - cx) * Math.sin(theta) + (y - cy) * Math.cos(theta));
+
+				result.put(yp, xp, mat.get(y, x)[0]);
+			}
+		}
+
 		return result;
 	}
 

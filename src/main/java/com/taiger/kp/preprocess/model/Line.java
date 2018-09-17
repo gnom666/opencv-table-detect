@@ -11,8 +11,22 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class Line {
+public class Line implements Comparable<Line>{
 	int constant;
 	int begin;
 	int end;
+	
+	public boolean tooNear (Line line) {
+		if (Math.abs(line.getConstant() - this.constant) <= 5) return true;
+		return false;
+	}
+
+	@Override
+	public int compareTo(Line o) {
+		return this.constant - o.constant;
+	}
+	
+	public boolean atLeftOf (Line l) {
+		return this.end < l.begin;
+	}
 }
