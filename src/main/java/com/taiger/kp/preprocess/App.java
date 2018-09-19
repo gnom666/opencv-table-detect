@@ -1,10 +1,8 @@
 package com.taiger.kp.preprocess;
 
-import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.pdfbox.cos.COSName;
@@ -14,13 +12,11 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 import com.taiger.kp.preprocess.controller.ExtractImages;
 import com.taiger.kp.preprocess.controller.Preprocessor;
-import com.taiger.kp.preprocess.controller.Tunner;
 
 import lombok.extern.java.Log;
 
@@ -38,51 +34,58 @@ public class App {
 	public static void main(String[] argss) {
 		nu.pattern.OpenCV.loadLocally();
 		
-		List <List <Mat>> pages = null;
-		List <List <Mat>> modPages = new ArrayList<>();
-
-		try {
+		List <Mat> pages = null;
+		List <Mat> modPages = new ArrayList<>();
+		
+		for (int index = 1; index <= 1; index++) {
 			
-			pages =  ExtractImages.extract("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF BAJIO 2.pdf");
+			//if (index == 2) continue;
 			
-		} 	catch (Exception e) {
-			e.printStackTrace();
-		}
+			try {
+				
+				pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF OCCIDENTE " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+				
+				//pages =  ExtractImages.extract("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF METRO " + index + ".pdf");
+				
+			} 	catch (Exception e) {
+				e.printStackTrace();
+			}
 
-		// Mat mat = Highgui.imread (dirStr + fileInStr,
-		// Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-		//Mat mat = Highgui.imread(dirStr + fileInStr, Highgui.CV_LOAD_IMAGE_COLOR);
-		if (pages == null) return;
-		//Mat mat = pages.get(3).get(0);
-		int i = 0;
-		for (List<Mat> page : pages) {
-			List <Mat> modPage = new ArrayList<>();
-			for (Mat mat : page) {
+			// Mat mat = Highgui.imread (dirStr + fileInStr,
+			// Highgui.CV_LOAD_IMAGE_GRAYSCALE);
+			//Mat mat = Highgui.imread(dirStr + fileInStr, Highgui.CV_LOAD_IMAGE_COLOR);
+			if (pages == null) return;
+			//Mat mat = pages.get(3).get(0);
+			int i = 0;
+			for (Mat page : pages) {
 				i++;
-				modPage.add(Preprocessor.preprocess(mat, i));
-				try {
+					/**
+					try {
+						System.gc();
+						Thread.sleep(5000);
+					} 	catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}**/
+				modPages.add(Preprocessor.preprocess(page, i));
+			}
+			i = 0;
+			for (Mat page : modPages) {
+				
+				i++;
+				Highgui.imwrite("/Users/jorge.rios/Work/bw" + i + ".png", page);
+				/*try {
 					System.gc();
 					Thread.sleep(5000);
 				} 	catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}*/
 			}
-			modPages.add(modPage);
-		}
-		i = 0;
-		for (List<Mat> page : modPages) {
-			for (Mat mat : page) {
-				i++;
-				Highgui.imwrite("/Users/jorge.rios/Work/bw" + i + ".png", mat);
-				try {
-					System.gc();
-					Thread.sleep(5000);
-				} 	catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+
+			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF OCCIDENTE " + index + ".pdf");
+			
+			
 		}
 
 		

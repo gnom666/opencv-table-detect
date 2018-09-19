@@ -22,4 +22,14 @@ public class RGBA {
 		double[] result = {red, green, blue};
 		return result;
 	}
+	
+	public double getGray () {
+		return (this.red + this.blue + this.green ) / 3;
+	}
+	
+	public void toGray () {
+		double gray = (this.red + this.blue + this.green ) / 3;
+		this.red = this.green = this.blue = gray;
+	}
+	
 }

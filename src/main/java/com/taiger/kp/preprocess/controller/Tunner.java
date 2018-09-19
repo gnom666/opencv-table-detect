@@ -455,7 +455,7 @@ public class Tunner {
 					if (down && right && result.get(y + 1, x + 1)[0] == 0.0)
 						neighbours++;
 
-					if (neighbours <= 2) {
+					if (neighbours <= 1) {
 						result.put(y, x, 255.0);
 					}
 				}
@@ -1578,6 +1578,7 @@ public class Tunner {
 
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
+				System.out.println("(" + y + " ");
 				if (tmp.get(y, x)[0] != 0.0 && tmp.get(y, x)[0] != 255.0) {
 					return false;
 				}
