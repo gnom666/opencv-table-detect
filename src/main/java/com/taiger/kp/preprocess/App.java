@@ -37,13 +37,20 @@ public class App {
 		List <Mat> pages = null;
 		List <Mat> modPages = new ArrayList<>();
 		
-		for (int index = 1; index <= 1; index++) {
+		for (int index = 4; index <= 4; index++) {
 			
 			//if (index == 2) continue;
 			
 			try {
 				
-				pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF OCCIDENTE " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF NORESTE " + index + ".pdf");
+				if (pages.isEmpty()) {
+					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF NORESTE " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+					log.info("has multiple images");
+				}	else {
+					log.info("has NOT multiple images");
+				}
+					
 				
 				//pages =  ExtractImages.extract("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF METRO " + index + ".pdf");
 				
@@ -54,7 +61,7 @@ public class App {
 			// Mat mat = Highgui.imread (dirStr + fileInStr,
 			// Highgui.CV_LOAD_IMAGE_GRAYSCALE);
 			//Mat mat = Highgui.imread(dirStr + fileInStr, Highgui.CV_LOAD_IMAGE_COLOR);
-			if (pages == null) return;
+			if (pages == null ) return;
 			//Mat mat = pages.get(3).get(0);
 			int i = 0;
 			for (Mat page : pages) {
@@ -83,7 +90,7 @@ public class App {
 				}*/
 			}
 
-			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF OCCIDENTE " + index + ".pdf");
+			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF NORESTE " + index + ".pdf");
 			
 			
 		}

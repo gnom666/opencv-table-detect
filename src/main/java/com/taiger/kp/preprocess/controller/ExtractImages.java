@@ -32,6 +32,11 @@ import lombok.extern.java.Log;
 @Log
 public class ExtractImages {
 	
+	/**
+	 * Save processed pages in a pdf file
+	 * @param pages images
+	 * @param out output file
+	 */
 	public static void save (List<List<Mat>> pages, String out) {
 		Assert.notNull(pages, "pages null");
 		
@@ -61,6 +66,11 @@ public class ExtractImages {
 		}
 	}
 	
+	/**
+	 * Save processed pages in a pdf file
+	 * @param pages images
+	 * @param out output file
+	 */
 	public static void savePdf (List<Mat> pages, String out) {
 		Assert.notNull(pages, "pages null");
 		
@@ -88,6 +98,12 @@ public class ExtractImages {
 		}
 	}
 	 
+	/**
+	 * Convert every page of a pdf into a list of images
+	 * @param pdf input pdf
+	 * @param out output dir
+	 * @return List of images
+	 */
 	public static List<Mat> pdf2image (String pdf, String out) {
 		List<Mat> pageImgs = new ArrayList<>();
 		
@@ -105,7 +121,7 @@ public class ExtractImages {
 
 		        for (int c = 0; c < cols; c++){
 		            for (int r = 0; r < rows; r++) {
-		                newMat.put(c, r, iToRGBA(bim.getRGB(r, c)).toArray());
+		                newMat.put(c, r, iToGrayscale(bim.getRGB(r, c)).toArray());
 		            }
 		        }
 		        
@@ -125,6 +141,79 @@ public class ExtractImages {
 		return pageImgs;
 	}
 	
+	/**
+	 * Determines whether a pdf pages contain more than one image and return the list of images if the file
+	 * contains only one image per page. In case of finding more than one image in one page an empty list is returned
+	 * @param inDir input directory
+	 * @param outDir output directory
+	 * @param fileName file name
+	 * @return List of images
+	 * @throws Exception
+	 */
+	public static List<Mat> noMultipleImages (String inDir, String outDir, String fileName) throws Exception {
+		Assert.hasText(inDir, "inDir should have text");
+		Assert.hasText(outDir, "outDir should have text");
+		Assert.hasText(fileName, "fileName should have text");
+		
+		List<List<Mat>> imgs = new ArrayList<>();
+
+        try (final PDDocument document = PDDocument.load(new File(inDir + fileName))){
+
+            PDPageTree list = document.getPages();
+            int i = 0;
+            for (PDPage page : list) {
+            	List<Mat> pageImgs = new ArrayList<>();
+                PDResources pdResources = page.getResources();
+                int imgNum = 0;
+                for (COSName name : pdResources.getXObjectNames()) {
+                    PDXObject o = pdResources.getXObject(name);
+                    if (o instanceof PDImageXObject) {
+                        PDImageXObject image = (PDImageXObject)o;
+                        //String filename = outDir + "extracted-image-" + i + ".png";
+                        //ImageIO.write(image.getImage(), "png", new File(filename));
+                        //System.out.println(i);
+                        i++;
+                        if (++imgNum >= 2) return new ArrayList<>();
+                        
+                        BufferedImage bi = image.getImage();
+						int rows = image.getWidth();
+				        int cols = image.getHeight();
+				        Mat newMat = new Mat(cols, rows, CvType.CV_8UC3);
+	
+				        for (int c = 0; c < cols; c++){
+				            for (int r = 0; r < rows; r++) {
+				                newMat.put(c, r, iToRGBA(bi.getRGB(r, c)).toArray());
+				            }
+				        }
+				        
+				        Highgui.imwrite("/Users/jorge.rios/Work/img_" + i + ".png", newMat);
+				        pageImgs.add(newMat);
+                    }
+                }
+                imgs.add(pageImgs);
+            }
+
+        } 	catch (IOException e) {
+            log.severe(e.getMessage());
+        }
+        
+        List<Mat> result = new ArrayList<>();
+        for (List<Mat> page : imgs) {
+        	if (!page.isEmpty())
+        		result.add(page.get(0));
+        }
+		
+		return result;
+	}
+	
+	/**
+	 * Extract all the images in a pdf
+	 * @param inDir input dir
+	 * @param outDir output dir
+	 * @param fileName file name
+	 * @return List of pages that are a list of images
+	 * @throws Exception
+	 */
 	public static List<List<Mat>> extract (String inDir, String outDir, String fileName) throws Exception {
 		Assert.hasText(inDir, "inDir should have text");
 		Assert.hasText(outDir, "outDir should have text");
@@ -155,7 +244,7 @@ public class ExtractImages {
 	
 				        for (int c = 0; c < cols; c++){
 				            for (int r = 0; r < rows; r++) {
-				                newMat.put(c, r, iToGrayscale(bi.getRGB(r, c)).toArray());
+				                newMat.put(c, r, iToRGBA(bi.getRGB(r, c)).toArray());
 				            }
 				        }
 				        
@@ -173,6 +262,11 @@ public class ExtractImages {
         return imgs;
     }
 	
+	/**
+	 * Convert a color integer to RGB
+	 * @param value integer representing a color
+	 * @return RGB
+	 */
 	public static RGBA iToRGBA (int value) {
 		RGBA result = new RGBA();
 		
@@ -184,19 +278,29 @@ public class ExtractImages {
 		return result;
 	}
 	
+	/**
+	 * Convert a grayscale integer to RGB
+	 * @param value integer representing a gray
+	 * @return RGB
+	 */
 	public static RGBA iToGrayscale (int value) {
 		RGBA result = new RGBA();
 		
-		result.setRed  (value & 0x00ff0000);
-		result.setGreen(value & 0x0000ff00);
+		result.setRed  (value & 0x000000ff);
+		result.setGreen(value & 0x000000ff);
 		result.setBlue (value & 0x000000ff);
-		result.setAlpha(value & 0xff000000);
+		result.setAlpha(value & 0x000000ff);
 		
-		result.toGray();
+		//result.toGray();
 		
 		return result;
 	}
 	
+	/**
+	 * Convert an OpenCV Mat to a byte array
+	 * @param mat OpenCV image
+	 * @return byte aray representation of an image
+	 */
 	public static byte[] mat2bytearray (Mat mat) {
 		Assert.notNull(mat, "mat null");
 		
@@ -214,6 +318,11 @@ public class ExtractImages {
 		return data;
 	}
 	
+	/**
+	 * Convert an OpenCV Mat to a buffered image
+	 * @param mat OpenCV image
+	 * @return buffered image
+	 */
 	public static BufferedImage mat2bufferedi (Mat mat) {
 		Assert.notNull(mat, "mat null");
 		
