@@ -35,17 +35,17 @@ public class App {
 		nu.pattern.OpenCV.loadLocally();
 		
 		List <Mat> pages = null;
-		List <Mat> modPages = new ArrayList<>();
+		List <Mat> modPages = null;
 		
-		for (int index = 4; index <= 4; index++) {
+		for (int index = 1; index <= 4; index++) {
 			
 			//if (index == 2) continue;
 			
 			try {
 				
-				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF NORESTE " + index + ".pdf");
+				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF METRO " + index + ".pdf");
 				if (pages.isEmpty()) {
-					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF NORESTE " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF METRO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
 					log.info("has multiple images");
 				}	else {
 					log.info("has NOT multiple images");
@@ -64,6 +64,7 @@ public class App {
 			if (pages == null ) return;
 			//Mat mat = pages.get(3).get(0);
 			int i = 0;
+			modPages = new ArrayList<>();
 			for (Mat page : pages) {
 				i++;
 					/**
@@ -76,6 +77,7 @@ public class App {
 					}**/
 				modPages.add(Preprocessor.preprocess(page, i));
 			}
+			
 			i = 0;
 			for (Mat page : modPages) {
 				
@@ -90,7 +92,7 @@ public class App {
 				}*/
 			}
 
-			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF NORESTE " + index + ".pdf");
+			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF METRO " + index + ".pdf");
 			
 			
 		}
