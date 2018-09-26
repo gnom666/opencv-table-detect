@@ -4,6 +4,9 @@ import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -16,6 +19,7 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 import com.taiger.kp.preprocess.controller.ExtractImages;
+import com.taiger.kp.preprocess.controller.PageRunnable;
 import com.taiger.kp.preprocess.controller.Preprocessor;
 
 import lombok.extern.java.Log;
@@ -30,22 +34,27 @@ public class App {
 	public static String fileInStr = "3.png";
 	public static String fileOutStr = "_b2.jpg";
 	public static String dirStr = "/Users/jorge.rios/Work/base/";
+	
+	public static List <Mat> modPages = null;
+	public static List <Mat> pages = null;
+	
+	//static Integer i = 0;
 
 	public static void main(String[] argss) {
 		nu.pattern.OpenCV.loadLocally();
 		
-		List <Mat> pages = null;
-		List <Mat> modPages = null;
+		long startTime = System.nanoTime();
 		
-		for (int index = 1; index <= 4; index++) {
+		/*
+		for (int index = 4; index <= 4; index++) {
 			
 			//if (index == 2) continue;
 			
 			try {
 				
-				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF METRO " + index + ".pdf");
+				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF BAJIO " + index + ".pdf");
 				if (pages.isEmpty()) {
-					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF METRO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF BAJIO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
 					log.info("has multiple images");
 				}	else {
 					log.info("has NOT multiple images");
@@ -67,14 +76,15 @@ public class App {
 			modPages = new ArrayList<>();
 			for (Mat page : pages) {
 				i++;
-					/**
+					/*
 					try {
 						System.gc();
 						Thread.sleep(5000);
 					} 	catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}**/
+					}
+					//*
 				modPages.add(Preprocessor.preprocess(page, i));
 			}
 			
@@ -89,97 +99,60 @@ public class App {
 				} 	catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}*/
+				}
+				//*
 			}
 
-			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF METRO " + index + ".pdf");
+			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF BAJIO " + index + ".pdf");
 			
 			
-		}
-
+		} //*/
 		
 		
-		/*
-		boolean black = true;
+		
+		
+		//*
+		for (int index = 4; index <= 4; index++) {
+			
+			//if (index == 2) continue;
+			
+			try {
+				
+				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF BAJIO " + index + ".pdf");
+				if (pages.isEmpty()) {
+					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF BAJIO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+					log.info("has multiple images");
+				}	else {
+					log.info("has NOT multiple images");
+				}
+				
+			} 	catch (Exception e) {
+				e.printStackTrace();
+			}
 
-		if (Tunner.isBW(mat)) {
+			if (pages == null ) return;
 
-			mat = Tunner.grayscale(mat);
+			modPages = Preprocessor.preprocessDoc(pages);
+			
+			int i = 0;
+			for (Mat page : modPages) {
+				i++;
+				Highgui.imwrite("/Users/jorge.rios/Work/bw" + i + ".png", page);
+			}
 
-			//Highgui.imwrite("/Users/jorge.rios/Work/rot0" + fileOutStr, mat);
-			//mat = Tunner.rotate(mat);
-			//Highgui.imwrite("/Users/jorge.rios/Work/rot" + fileOutStr, mat);
-
-			mat = Tunner.killHermits(mat);
-			mat.copyTo(original);
-			mat = Tunner.rFatter(mat);
-			mat = Tunner.filler(mat);
-
-			mat = Tunner.plusFatter(mat);
-
-			Highgui.imwrite("/Users/jorge.rios/Work/org" + fileOutStr, original);
-
-			mat = Tunner.imageThresholding(mat);
-
-			Highgui.imwrite("/Users/jorge.rios/Work/th" + fileOutStr, mat);
-
-			List<Integer> y = new LinkedList<>();
-			List<Integer> x = new LinkedList<>();
-
-			mat = Tunner.lines(mat);
-
-			mat = Tunner.cleanLines(mat);
-			mat = Tunner.invert(mat);
-			mat = Tunner.fusion(original, mat);
-			mat = Tunner.filler(mat);
-
-		} else {
-
-			// mat = Tunner.invert(mat);
-			// mat = Tunner.bright(mat, 0.75, 0);
-			// mat = Tunner.denoiseColor(mat);
-			// mat = Tunner.invertColor(mat);
-			mat = Tunner.grayscale(mat);
-			// Highgui.imwrite(dirStr + "gs" + fileOutStr, mat);
-
-			// mat = Tunner.invert(mat);
-			// mat = Tunner.tuneWhite (mat, 128, 50, 255);
-			// mat = Tunner.killHermits(mat);
-			// mat = Tunner.rFatter(mat);
-			// mat = Tunner.filler(mat);
-			// mat = Tunner.plusFatter(mat);
-			mat.copyTo(original);
-			Highgui.imwrite("/Users/jorge.rios/Work/org" + fileOutStr, original);
-			// mat = Tunner.tuneWhite(mat, 190);
-			mat = Tunner.imageThresholding(mat);
-
-			Highgui.imwrite("/Users/jorge.rios/Work/th" + fileOutStr, mat);
-			// mat = Tunner.bw128(mat);
-			// mat = Tunner.bwMedia(mat);
-			// mat = Tunner.invert(mat);
-			// mat = Tunner.killCouples(mat);
-			// mat = Tunner.rFatter(mat);
-			// mat = Tunner.filler(mat); 
-
-			// mat = Tunner.invert(mat);
-			// Tunner.histogram2(mat);
-			// Mat h = Tunner.hLines(mat, y);
-			// Mat v = Tunner.vLines(mat, x);
-			mat = Tunner.lines(mat);
-			// mat = Tunner.sumLines(v, h);
-			mat = Tunner.cleanLines(mat);
-			mat = Tunner.invert(mat);
-			mat = Tunner.fusion(original, mat);
-			// Tunner.getHorizontalLines(mat);
-			// Tunner.getVerticalLines(mat);
-			// Tunner.histogram2(mat);
-			// Tunner.histogram3(mat);
-
-			// mat = Tunner.invert(mat);
-			// mat = Tunner.fatter(mat);
+			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF BAJIO " + index + ".pdf");
 		}
+		//*/
+		
+		
+		
+		
+		long endTime = System.nanoTime();
 
-		Highgui.imwrite("/Users/jorge.rios/Work/bw" + fileOutStr, mat); */
+		long timeElapsed = endTime - startTime;
+
+		System.out.println("Execution time in nanoseconds: " + timeElapsed);
+		System.out.println("Execution time in milliseconds: " + timeElapsed / 1000000);
 	}
 
 	public static List<RenderedImage> getImagesFromPDF(PDDocument document) throws IOException {

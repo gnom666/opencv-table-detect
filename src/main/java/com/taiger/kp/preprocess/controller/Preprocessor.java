@@ -1,5 +1,11 @@
 package com.taiger.kp.preprocess.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 import org.springframework.util.Assert;
@@ -11,6 +17,37 @@ public class Preprocessor {
 	
 	public static String fileOutStr = ".jpg";
 	public static String dirStr = "/Users/jorge.rios/Work/base/";
+	
+	public static List<Mat> preprocessDoc (List<Mat> pages) {
+		List<Mat> modPages = new ArrayList<>();
+		
+		int i = 0;
+		modPages = new ArrayList<>();
+		List<PageRunnable> runnables = new ArrayList<>();
+		while (i < pages.size()) {
+			runnables.add(new PageRunnable(i, pages.get(i), null));
+			i++;
+		}
+		
+		ExecutorService es = Executors.newCachedThreadPool();
+		for (i = 0; i < pages.size(); i++) {
+		    es.execute(runnables.get(i));
+		}
+		es.shutdown();
+		boolean finished = false;
+		try {
+			finished = es.awaitTermination(10, TimeUnit.MINUTES);
+		} 	catch (InterruptedException e) {
+			log.severe(e.toString());
+		}
+		
+		for (PageRunnable pageR : runnables) {
+			modPages.add(pageR.getModPage());
+		}
+		
+		return modPages;
+		
+	}
 
 	public static Mat preprocess (Mat mat, int i) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
