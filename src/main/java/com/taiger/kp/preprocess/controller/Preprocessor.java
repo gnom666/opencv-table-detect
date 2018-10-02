@@ -10,6 +10,8 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 import org.springframework.util.Assert;
 
+import com.taiger.kp.preprocess.model.PageRunnable;
+
 import lombok.extern.java.Log;
 
 @Log
@@ -36,7 +38,7 @@ public class Preprocessor {
 		es.shutdown();
 		boolean finished = false;
 		try {
-			finished = es.awaitTermination(10, TimeUnit.MINUTES);
+			finished = es.awaitTermination(2, TimeUnit.MINUTES);
 		} 	catch (InterruptedException e) {
 			log.severe(e.toString());
 		}
@@ -71,8 +73,12 @@ public class Preprocessor {
 			//mat = Tunner.rotate(mat);
 
 			//Mat visited = new Mat(grayscale.rows(), grayscale.cols(), CvType.CV_8UC1, new Scalar(255.0));
-			original = tunner.killHermits(grayscale);
-			//grayscale.copyTo(original);
+			//grayscale = tunner.killHermitsFast(grayscale);
+			
+			grayscale = tunner.killHermits(grayscale);
+			
+			grayscale.copyTo(original);
+			
 			Highgui.imwrite("/Users/jorge.rios/Work/org" + i + fileOutStr, original);
 			
 			//mat = Tunner.rFatter(mat);
@@ -81,17 +87,20 @@ public class Preprocessor {
 			grayscale = tunner.plusFatter(grayscale);
 			
 			grayscale = tunner.filler(grayscale);
+			
+			Highgui.imwrite("/Users/jorge.rios/Work/plus" + i + fileOutStr, grayscale);
 
 			//Highgui.imwrite("/Users/jorge.rios/Work/org" + fileOutStr, original);
 
-			grayscale = tunner.imageThresholding(grayscale);
+			//grayscale = tunner.imageThresholding(grayscale);
+			grayscale = tunner.invert(grayscale);
 
 			Highgui.imwrite("/Users/jorge.rios/Work/th" + i + fileOutStr, grayscale);
 			//Highgui.imwrite("/Users/jorge.rios/Work/th" + fileOutStr, mat);
 
 			Mat lines = new Mat();
 			
-			tunner.linesStretch(grayscale, i).copyTo(lines);
+			tunner.linesStretchParall(grayscale, i).copyTo(lines);
 			grayscale.release();
 			
 			Highgui.imwrite("/Users/jorge.rios/Work/lines" + i + fileOutStr, lines);
@@ -100,7 +109,7 @@ public class Preprocessor {
 			Highgui.imwrite("/Users/jorge.rios/Work/linesc" + i + fileOutStr, lines);
 			
 			tunner.fusion(original, lines).copyTo(compose);
-			compose = tunner.filler(compose);
+			//compose = tunner.filler(compose);
 			original.release();
 			lines.release();
 			Highgui.imwrite("/Users/jorge.rios/Work/compose" + i + fileOutStr, compose);
@@ -124,9 +133,11 @@ public class Preprocessor {
 			grayscale = tunner.invert(grayscale);
 
 			//Mat visited = new Mat(grayscale.rows(), grayscale.cols(), CvType.CV_8UC1, new Scalar(255.0));
-			original = tunner.killHermits(grayscale);
-			//grayscale.copyTo(original);
+			original = grayscale.clone();
 			Highgui.imwrite("/Users/jorge.rios/Work/org" + i + fileOutStr, original);
+			grayscale = tunner.killHermits(grayscale);
+			//grayscale.copyTo(original);
+			Highgui.imwrite("/Users/jorge.rios/Work/orgx" + i + fileOutStr, grayscale);
 			
 			//mat = Tunner.rFatter(mat);
 			grayscale = tunner.filler(grayscale);
@@ -144,7 +155,7 @@ public class Preprocessor {
 
 			Mat lines = new Mat();
 			
-			tunner.linesStretch(grayscale, i).copyTo(lines);
+			tunner.linesStretchParall (grayscale, i).copyTo(lines);
 			grayscale.release();
 			
 			Highgui.imwrite("/Users/jorge.rios/Work/lines" + i + fileOutStr, lines);
@@ -153,7 +164,7 @@ public class Preprocessor {
 			Highgui.imwrite("/Users/jorge.rios/Work/linesc" + i + fileOutStr, lines);
 			
 			tunner.fusion(original, lines).copyTo(compose);
-			compose = tunner.filler(compose);
+			//compose = tunner.filler(compose);
 			original.release();
 			lines.release();
 			Highgui.imwrite("/Users/jorge.rios/Work/compose" + i + fileOutStr, compose);

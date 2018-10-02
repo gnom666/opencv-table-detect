@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -18,8 +21,10 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.photo.Photo;
 
+import com.taiger.kp.preprocess.model.Constants;
 import com.taiger.kp.preprocess.model.Dither2;
 import com.taiger.kp.preprocess.model.Line;
+import com.taiger.kp.preprocess.model.LineDetectionRunnable;
 
 import lombok.extern.java.Log;
 
@@ -43,7 +48,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -63,15 +68,16 @@ public class Tunner {
 	 */
 	public Mat invert(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
-		Mat result = new Mat();
+		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(255));
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
-
-		for (int i = 0; i < mat.height(); i++) {
-			for (int j = 0; j < mat.width(); j++) {
-				result.put(i, j, (255.0 - result.get(i, j)[0]) >= 0 ? 255.0 - result.get(i, j)[0] : 0.0);
-			}
-		}
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		
+		Core.bitwise_not(mat, result);
+//		for (int i = 0; i < mat.height(); i++) {
+//			for (int j = 0; j < mat.width(); j++) {
+//				result.put(i, j, (255.0 - result.get(i, j)[0]) >= 0 ? 255.0 - result.get(i, j)[0] : 0.0);
+//			}
+//		}
 
 		return result;
 	}
@@ -90,7 +96,7 @@ public class Tunner {
 		Assert.isTrue(limit >= 0 && limit < 256, "limit should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -124,7 +130,7 @@ public class Tunner {
 
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -147,7 +153,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i++) {
 			for (int j = 0; j < mat.width(); j++) {
@@ -172,7 +178,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		double higher = 0, lower = 255;
 
 		for (int i = 0; i < mat.height(); i++) {
@@ -209,7 +215,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		double sum = 0;
 		int qty = mat.height() * mat.width();
 
@@ -244,7 +250,7 @@ public class Tunner {
 		Dither2 dither = new Dither2();
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int i = 0; i < mat.height(); i += 3) {
 			for (int j = 0; j < mat.width(); j += 3) {
@@ -267,7 +273,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < result.height(); y++) {
@@ -313,15 +319,19 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < result.height(); y++) {
+			
 			up = y > 0;
 			down = y < result.height() - 1;
+			
 			for (int x = 0; x < result.width(); x++) {
+				
 				left = x > 0;
 				right = x < result.width() - 1;
+				
 				if (mat.get(y, x)[0] == 0.0) {
 					if (left)
 						result.put(y, x - 1, 0.0);
@@ -349,7 +359,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean down, right;
 
 		for (int y = 0; y < result.height(); y++) {
@@ -379,7 +389,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -415,6 +425,106 @@ public class Tunner {
 
 		return result;
 	}
+	
+	/**
+	 * Eliminates lonely black pixels. It modifies original imgae
+	 * 
+	 * @param mat
+	 *            Image
+	 * @return Modified image
+	 */
+	public Mat killHermitsMod(Mat mat, int direction) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Assert.isTrue(direction >= 0, "wrong direction");
+		Mat tmp = new Mat();
+		mat.copyTo(tmp);
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		boolean left, up, down, right;
+
+		if (direction == Constants.RIGHT) {
+			for (int y = 0; y < tmp.height(); y++) {
+				up = y > 0;
+				down = y < tmp.height() - 1;
+				for (int x = 0; x < tmp.width(); x++) {
+					left = x > 0;
+					right = x < tmp.width() - 1;
+					if (tmp.get(y, x)[0] == 0.0) {
+						boolean hasNeighbour = false;
+						if (up && tmp.get(y - 1, x)[0] == 0.0)
+							hasNeighbour = true;
+						if (down && tmp.get(y + 1, x)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (left && tmp.get(y, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (right && tmp.get(y, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (up && left && tmp.get(y - 1, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (up && right && tmp.get(y - 1, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (down && left && tmp.get(y + 1, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (down && right && tmp.get(y + 1, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+
+						if (!hasNeighbour)
+							mat.put(y, x, 255.0);
+					}
+				}
+			}
+		}	else {
+			for (int y = 0; y < tmp.height(); y++) {
+				up = y > 0;
+				down = y < tmp.height() - 1;
+				for (int x = 0; x < tmp.width(); x++) {
+					left = x > 0;
+					right = x < tmp.width() - 1;
+					if (tmp.get(y, x)[0] == 0.0) {
+						boolean hasNeighbour = false;
+						if (up && tmp.get(y - 1, x)[0] == 0.0)
+							hasNeighbour = true;
+						if (down && tmp.get(y + 1, x)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (left && tmp.get(y, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (right && tmp.get(y, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (up && left && tmp.get(y - 1, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (up && right && tmp.get(y - 1, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (down && left && tmp.get(y + 1, x - 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+						if (down && right && tmp.get(y + 1, x + 1)[0] == 0.0 && !hasNeighbour)
+							hasNeighbour = true;
+
+						if (!hasNeighbour)
+							mat.put(y, x, 255.0);
+					}
+				}
+			}
+		}
+
+		return mat;
+	}
+	
+	public Mat open (Mat mat, int rounds) {
+		Assert.isTrue(rounds > 0, "rounds should be positive");
+		Mat result = mat.clone();
+		
+		Imgproc.morphologyEx(mat, result, Imgproc.MORPH_OPEN, new Mat(3, 3, CvType.CV_8UC1, new Scalar(255)), new Point(-1, -1), rounds);
+		
+		return result;
+	}
+	
+	public Mat close (Mat mat, int rounds) {
+		Assert.isTrue(rounds > 0, "rounds should be positive");
+		Mat result = mat.clone();
+		
+		Imgproc.morphologyEx(mat, result, Imgproc.MORPH_CLOSE, new Mat(3, 3, CvType.CV_8UC1, new Scalar(255)), new Point(-1, -1), rounds);
+		
+		return result;
+	}
 
 	/**
 	 * Eliminates one neighbour pixels and lonely pixels
@@ -427,7 +537,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -497,61 +607,6 @@ public class Tunner {
 		return result;
 	}
 
-	/*
-	 * public double killCouplesRec (Mat mat, int r, int c, Mat visited) { //Mat
-	 * visited = new Mat(mat.rows(), mat.cols(), CvType.CV_8UC1, new Scalar(255.0));
-	 * 
-	 * //Highgui.imwrite("/Users/jorge.rios/Work/visited.jpg", visited);
-	 * 
-	 * boolean left, up, down, right;
-	 * 
-	 * up = r > 0; down = r < mat.height() - 1; left = c > 0; right = c <
-	 * mat.width() - 1;
-	 * 
-	 * visited.put(r, c, 0.0);
-	 * 
-	 * int neighbours = 0;
-	 * 
-	 * if (left && up && visited.get(r-1, c-1)[0] == 0.0) { if (mat.get(r-1, c-1)[0]
-	 * == 0.0) { neighbours++; } } if (left && up && visited.get(r-1, c-1)[0] !=
-	 * 0.0) { if (killCouplesRec(mat, r-1, c-1, visited) == 0.0) { neighbours++; } }
-	 * 
-	 * if (up && visited.get(r-1, c)[0] == 0.0) { if (mat.get(r-1, c)[0] == 0.0) {
-	 * neighbours++; } } if (up && visited.get(r-1, c)[0] != 0.0) { if
-	 * (killCouplesRec(mat, r-1, c, visited) == 0.0) { neighbours++; } }
-	 * 
-	 * if (up && right && visited.get(r-1, c+1)[0] == 0.0) { if (mat.get(r-1,
-	 * c+1)[0] == 0.0) { neighbours++; } } if (up && right && visited.get(r-1,
-	 * c+1)[0] != 0.0) { if (killCouplesRec(mat, r-1, c+1, visited) == 0.0) {
-	 * neighbours++; } }
-	 * 
-	 * if (left && visited.get(r, c-1)[0] == 0.0) { if (mat.get(r, c-1)[0] == 0.0) {
-	 * neighbours++; } } if (left && visited.get(r, c-1)[0] != 0.0) { if
-	 * (killCouplesRec(mat, r, c-1, visited) == 0.0) { neighbours++; } }
-	 * 
-	 * if (right && visited.get(r, c+1)[0] == 0.0) { if (mat.get(r, c+1)[0] == 0.0)
-	 * { neighbours++; } } if (right && visited.get(r, c+1)[0] != 0.0) { if
-	 * (killCouplesRec(mat, r, c+1, visited) == 0.0) { neighbours++; } }
-	 * 
-	 * if (left && down && visited.get(r+1, c-1)[0] == 0.0) { if (mat.get(r+1,
-	 * c-1)[0] == 0.0) { neighbours++; } } if (left && down && visited.get(r+1,
-	 * c-1)[0] != 0.0) { if (killCouplesRec(mat, r+1, c-1, visited) == 0.0) {
-	 * neighbours++; } }
-	 * 
-	 * if (down && visited.get(r+1, c)[0] == 0.0) { if (mat.get(r+1, c)[0] == 0.0) {
-	 * neighbours++; } } if (down && visited.get(r+1, c)[0] != 0.0) { if
-	 * (killCouplesRec(mat, r+1, c, visited) == 0.0) { neighbours++; } }
-	 * 
-	 * if (down && right && visited.get(r+1, c+1)[0] == 0.0) { if (mat.get(r+1,
-	 * c+1)[0] == 0.0) { neighbours++; } } if (down && right && visited.get(r+1,
-	 * c+1)[0] != 0.0) { if (killCouplesRec(mat, r+1, c+1, visited) == 0.0) {
-	 * neighbours++; } }
-	 * 
-	 * if (neighbours <= 1) { mat.put(r, c, 255.0); }
-	 * 
-	 * return mat.get(r, c)[0]; }
-	 */
-
 	/**
 	 * Changes to black white pixels with three or more black pixels
 	 * 
@@ -563,7 +618,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		boolean left, up, down, right;
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -614,7 +669,7 @@ public class Tunner {
 		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -658,7 +713,7 @@ public class Tunner {
 		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -700,7 +755,7 @@ public class Tunner {
 		Assert.isTrue(limit >= 0 && limit < 256, "center should be between [0;255]");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		int width = result.width();
 		int height = result.height();
@@ -746,7 +801,7 @@ public class Tunner {
 	public Mat denoiseColor(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Photo.fastNlMeansDenoisingColored(mat, result);
 
@@ -763,7 +818,7 @@ public class Tunner {
 	public Mat denoise(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Photo.fastNlMeansDenoising(mat, result);
 
@@ -782,7 +837,7 @@ public class Tunner {
 		java.util.List<Mat> matList = new LinkedList<Mat>();
 		matList.add(mat);
 		Mat histogram = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		MatOfFloat ranges = new MatOfFloat(0, 256);
 		MatOfInt histSize = new MatOfInt(255);
 		Imgproc.calcHist(matList, new MatOfInt(0), new Mat(), histogram, histSize, ranges);
@@ -811,7 +866,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
@@ -842,7 +897,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int x = 0; x < mat.width(); x++) {
 			for (int y = mat.height() - 1; y > 0; y--) {
@@ -872,16 +927,16 @@ public class Tunner {
 	 */
 	public Mat grayscale(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
-		Mat tmp = new Mat();
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
-		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
+		/*Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
 				result.put(y, x, (tmp.get(y, x)[0] + tmp.get(y, x)[1] + tmp.get(y, x)[2]) / 3);
 			}
-		}
+		}*/
+		Imgproc.cvtColor(mat, result, Imgproc.COLOR_BGR2GRAY);
 
 		return result;
 	}
@@ -896,7 +951,7 @@ public class Tunner {
 	public Mat invertColor(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC3);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
@@ -919,11 +974,11 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		Mat vertical = mat.clone();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		try {
 
-			int scale = 25; // play with this variable in order to increase/decrease the amount of lines to
+			int scale = 26; // play with this variable in order to increase/decrease the amount of lines to
 							// be detected
 
 			// Specify size on vertical axis
@@ -960,12 +1015,12 @@ public class Tunner {
 	public Mat getHorizontalLines(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat horizontal = mat.clone();
 
 		try {
 
-			int scale = 25; // play with this variable in order to increase/decrease the amount of lines to
+			int scale = 26; // play with this variable in order to increase/decrease the amount of lines to
 							// be detected
 
 			// Specify size on horizontal axis
@@ -1000,7 +1055,7 @@ public class Tunner {
 	public Mat intersectLines(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = mat.clone();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		Mat h = getHorizontalLines(mat);
 
@@ -1026,7 +1081,7 @@ public class Tunner {
 	public Mat sumLines(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = mat.clone();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		Mat h = getHorizontalLines(mat);
 
@@ -1054,7 +1109,7 @@ public class Tunner {
 		Assert.notNull(v, "'v' shouldn't be null");
 		Assert.notNull(h, "'h' shouldn't be null");
 		Mat result = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		v.copyTo(result);
 
 		for (int y = 0; y < result.height(); y++) {
@@ -1075,7 +1130,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat result = new Mat();
 		mat.copyTo(result);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		// Highgui.imwrite("/Users/jorge.rios/Work/tmp.jpg", result);
 		boolean found = false;
 
@@ -1140,7 +1195,7 @@ public class Tunner {
 		int alpha = 20;
 		int beta = 20;
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(0.0));
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Mat v = getVerticalLines(mat);
 		Highgui.imwrite("/Users/jorge.rios/Work/v" + index + ".png", v);
@@ -1252,13 +1307,165 @@ public class Tunner {
 		// Highgui.imwrite("/Users/jorge.rios/Work/lines" + iCount++ + ".jpg", result);
 		return result;
 	}
+	
+	public List<Line> linesStretchH (Mat mat, int index) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		
+		Mat h = getHorizontalLines(mat);
+		Highgui.imwrite("/Users/jorge.rios/Work/h" + index + ".png", h);
+		
+		List<MatOfPoint> hcontours = new ArrayList<MatOfPoint>();
+		Mat tmp = new Mat();
+		Imgproc.findContours(h, hcontours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		tmp.release();
+		h.release();
+		
+		List<Line> hLines = new LinkedList<>();
+		for (MatOfPoint c : hcontours) {
+			// System.out.println(c.dump());
+			int minx = (int) lineMinX(c);
+			int maxx = (int) lineMaxX(c);
+			int y = (int) lineY(c);
+			hLines.add(new Line(y, minx, maxx));
+		}
+		
+		List<Line> hFinalLines = new LinkedList<>();
+		Collections.sort(hLines);
+		if (!hLines.isEmpty())
+			hFinalLines.add(hLines.get(0));
+		for (int i = 1; i < hLines.size(); i++) {
+			Line li = hLines.get(i);
+			boolean added = false;
+			for (int j = 0; j < hFinalLines.size() && !added; j++) {
+				Line lj = hFinalLines.get(j);
+
+				if (li.tooNear(lj)) {
+					Line composed = composeLines(li, lj);
+					lj.setConstant(composed.getConstant());
+					lj.setBegin(composed.getBegin());
+					lj.setEnd(composed.getEnd());
+					added = true;
+				}
+			}
+			if (!added)
+				hFinalLines.add(li);
+		}
+		Collections.sort(hFinalLines);
+		
+		return hFinalLines;
+	}
+	
+	public List<Line> linesStretchV (Mat mat, int index) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		
+		Mat v = getVerticalLines(mat);
+		Highgui.imwrite("/Users/jorge.rios/Work/v" + index + ".png", v);
+		
+		List<MatOfPoint> vcontours = new ArrayList<MatOfPoint>();
+		Mat tmp = new Mat();
+		Imgproc.findContours(v, vcontours, tmp, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
+		tmp.release();
+		v.release();
+		
+		List<Line> vLines = new LinkedList<>();
+		for (MatOfPoint c : vcontours) {
+			// System.out.println(c.dump());
+			int miny = (int) lineMinY(c);
+			int maxy = (int) lineMaxY(c);
+			int x = (int) lineX(c);
+			vLines.add(new Line(x, miny, maxy));
+		}
+		
+		List<Line> vFinalLines = new LinkedList<>();
+		Collections.sort(vLines);
+		if (!vLines.isEmpty())
+			vFinalLines.add(vLines.get(0));
+		for (int i = 1; i < vLines.size(); i++) {
+			Line li = vLines.get(i);
+			boolean added = false;
+			for (int j = 0; j < vFinalLines.size() && !added; j++) {
+				Line lj = vFinalLines.get(j);
+
+				if (li.tooNear(lj)) {
+					Line composed = composeLines(li, lj);
+					lj.setConstant(composed.getConstant());
+					lj.setBegin(composed.getBegin());
+					lj.setEnd(composed.getEnd());
+					added = true;
+				}
+			}
+			if (!added)
+				vFinalLines.add(li);
+		}
+		Collections.sort(vFinalLines);
+		
+		return vFinalLines;
+	}
+	
+	public Mat linesStretchParall (Mat mat, int index) {
+		Assert.notNull(mat, "'mat' shouldn't be null");
+		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(0.0));
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		
+		LineDetectionRunnable ldrH = new LineDetectionRunnable(index, mat, null, 0);
+		LineDetectionRunnable ldrV = new LineDetectionRunnable(index, mat, null, 1);
+
+		ExecutorService es = Executors.newCachedThreadPool();
+		es.execute(ldrH);
+		es.execute(ldrV);
+		es.shutdown();
+		boolean finished = false;
+		try {
+			finished = es.awaitTermination(2, TimeUnit.MINUTES);
+		} 	catch (InterruptedException e) {
+			log.severe(e.toString());
+		}
+		
+		List<Line> hFinalLines = ldrH.getLines();
+		List<Line> vFinalLines = ldrV.getLines();
+
+		for (Line hl : hFinalLines) {
+			int y = hl.getConstant();
+			for (int x = hl.getBegin(); x < hl.getEnd(); x++) {
+				if (y != -1)
+					result.put(y, x, 255.0);
+				if (y > 0)
+					result.put(y - 1, x, 255.0);
+				if (y < result.height() - 1)
+					result.put(y + 1, x, 255.0);
+				
+				if (y > 1)
+					result.put(y - 2, x, 255.0);
+				if (y < result.height() - 2)
+					result.put(y + 2, x, 255.0);
+			}
+		}
+
+		for (Line vl : vFinalLines) {
+			int x = vl.getConstant();
+			for (int y = vl.getBegin(); y < vl.getEnd(); y++) {
+				if (x != -1)
+					result.put(y, x, 255.0);
+				if (x > 0)
+					result.put(y, x - 1, 255.0);
+				if (x < result.width() - 1)
+					result.put(y, x + 1, 255.0);
+				
+				if (x > 1)
+					result.put(y, x - 2, 255.0);
+				if (x < result.width() - 2)
+					result.put(y, x + 2, 255.0);
+			}
+		}
+
+		// Highgui.imwrite("/Users/jorge.rios/Work/lines" + iCount++ + ".jpg", result);
+		return result;
+	}
 
 	public Mat linesStretch(Mat mat, int index) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
-		int alpha = 20;
-		int beta = 20;
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1, new Scalar(0.0));
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 
 		Mat v = getVerticalLines(mat);
 		Highgui.imwrite("/Users/jorge.rios/Work/v" + index + ".png", v);
@@ -1398,7 +1605,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Assert.notNull(linesX, "'linesX' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat v = getVerticalLines(mat);
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(v, contours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -1430,7 +1637,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Assert.notNull(linesY, "'linesY' shouldn't be null");
 		Mat result = new Mat(mat.height(), mat.width(), CvType.CV_8UC1);
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Mat h = getHorizontalLines(mat);
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Imgproc.findContours(h, contours, new Mat(), Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -1533,13 +1740,13 @@ public class Tunner {
 		Assert.notNull(gray, "'gray' shouldn't be null");
 
 		Mat bw = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		try {
 			// Apply adaptiveThreshold at the bitwise_not of gray
 
 			Core.bitwise_not(gray, gray);
 
-			Imgproc.adaptiveThreshold(gray, bw, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 15, -2);
+			Imgproc.adaptiveThreshold(gray, bw, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 7, 1);
 			// saveMat(File.createTempFile("WB_mean_", FILE_SUFFIX, resultDirFile), bw);
 
 			// Imgproc.adaptiveThreshold(gray, bw, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -1557,15 +1764,17 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		
 		Mat result = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		original.copyTo(result);
 
-		for (int y = 0; y < result.height(); y++) {
-			for (int x = 0; x < result.width(); x++) {
-				if (mat.get(y, x)[0] == 0.0)
-					result.put(y, x, 0.0);
-			}
-		}
+		Core.bitwise_and(original, mat, result);
+		
+//		for (int y = 0; y < result.height(); y++) {
+//			for (int x = 0; x < result.width(); x++) {
+//				if (mat.get(y, x)[0] == 0.0)
+//					result.put(y, x, 0.0);
+//			}
+//		}
 
 		return result;
 	}
@@ -1573,7 +1782,7 @@ public class Tunner {
 	public boolean isBW(Mat mat) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Mat tmp = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
 
 		for (int y = 0; y < mat.height(); y++) {
@@ -1591,7 +1800,7 @@ public class Tunner {
 		Assert.notNull(mat, "'mat' shouldn't be null");
 		Assert.isTrue(frame >= 0 && frame < 51, "frame should be between [0;50]");
 		Mat tmp = new Mat();
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
 		tmp = killHermits(tmp);
 
@@ -1612,7 +1821,7 @@ public class Tunner {
 		int cy = mat.height() / 2;
 		double theta = Math.toRadians(90);
 		Mat result = new Mat(mat.width(), mat.height(), CvType.CV_8UC1, new Scalar(255.0));
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		// x' = cx + (x-cx) * Cos(theta) - (y-cy) * Sin(theta)
 		// y' = cy + (x-cx) * Sin(theta) + (y-cy) * Cos(theta)
 

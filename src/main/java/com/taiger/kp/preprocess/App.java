@@ -19,8 +19,9 @@ import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 import com.taiger.kp.preprocess.controller.ExtractImages;
-import com.taiger.kp.preprocess.controller.PageRunnable;
+import com.taiger.kp.preprocess.controller.PageInfo;
 import com.taiger.kp.preprocess.controller.Preprocessor;
+import com.taiger.kp.preprocess.model.PageRunnable;
 
 import lombok.extern.java.Log;
 
@@ -37,6 +38,8 @@ public class App {
 	
 	public static List <Mat> modPages = null;
 	public static List <Mat> pages = null;
+	public static List <PageInfo> pagesInfo = null;
+	public static List <PageInfo> infoPages = null;
 	
 	//static Integer i = 0;
 
@@ -45,82 +48,34 @@ public class App {
 		
 		long startTime = System.nanoTime();
 		
-		/*
-		for (int index = 4; index <= 4; index++) {
-			
-			//if (index == 2) continue;
-			
-			try {
-				
-				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF BAJIO " + index + ".pdf");
-				if (pages.isEmpty()) {
-					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF BAJIO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
-					log.info("has multiple images");
-				}	else {
-					log.info("has NOT multiple images");
-				}
-					
-				
-				//pages =  ExtractImages.extract("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF METRO " + index + ".pdf");
-				
-			} 	catch (Exception e) {
-				e.printStackTrace();
-			}
-
-			// Mat mat = Highgui.imread (dirStr + fileInStr,
-			// Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-			//Mat mat = Highgui.imread(dirStr + fileInStr, Highgui.CV_LOAD_IMAGE_COLOR);
-			if (pages == null ) return;
-			//Mat mat = pages.get(3).get(0);
-			int i = 0;
-			modPages = new ArrayList<>();
-			for (Mat page : pages) {
-				i++;
-					/*
-					try {
-						System.gc();
-						Thread.sleep(5000);
-					} 	catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					//*
-				modPages.add(Preprocessor.preprocess(page, i));
-			}
-			
-			i = 0;
-			for (Mat page : modPages) {
-				
-				i++;
-				Highgui.imwrite("/Users/jorge.rios/Work/bw" + i + ".png", page);
-				/*try {
-					System.gc();
-					Thread.sleep(5000);
-				} 	catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				//*
-			}
-
-			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF BAJIO " + index + ".pdf");
-			
-			
-		} //*/
-		
-		
+		List<String> filenames = new ArrayList<>();
+		filenames.add("PF BAJIO 2.pdf");
+		filenames.add("PF BAJIO 3.pdf");
+		filenames.add("PF BAJIO 4.pdf");
+		filenames.add("PF METRO 1.pdf");
+		filenames.add("PF METRO 2.pdf");
+		filenames.add("PF METRO 3.pdf");
+		filenames.add("PF METRO 4.pdf");
+		filenames.add("PF NORESTE 1.pdf");
+		filenames.add("PF NORESTE 3.pdf");
+		filenames.add("PF NORESTE 4.pdf");
+		filenames.add("PF NOROESTE 1.pdf");
+		filenames.add("PF NOROESTE 2.pdf");
+		filenames.add("PF OCCIDENTE 1.pdf");
+		filenames.add("PF SUR 1.pdf");
+		filenames.add("PF SUR 2.pdf");
+		filenames.add("PF SURESTE 2.pdf");
+		filenames.add("PF SURESTE 3.pdf");
 		
 		
 		//*
-		for (int index = 4; index <= 4; index++) {
-			
-			//if (index == 2) continue;
+		for (String filename : filenames) {
 			
 			try {
 				
-				pages = ExtractImages.noMultipleImages("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", "PF BAJIO " + index + ".pdf");
-				if (pages.isEmpty()) {
-					pages = ExtractImages.pdf2image("/Users/jorge.rios/Work/base/PF BAJIO " + index + ".pdf", "/Users/jorge.rios/Work/base/");
+				pagesInfo = ExtractImages.noMultipleImagesInfo ("/Users/jorge.rios/Work/base/", "/Users/jorge.rios/Work/base/", filename);
+				if (pagesInfo.isEmpty()) {
+					pagesInfo = ExtractImages.pdf2imageInfo ("/Users/jorge.rios/Work/base/" + filename, "/Users/jorge.rios/Work/base/");
 					log.info("has multiple images");
 				}	else {
 					log.info("has NOT multiple images");
@@ -130,27 +85,27 @@ public class App {
 				e.printStackTrace();
 			}
 
-			if (pages == null ) return;
+			if (pagesInfo == null ) return;
+			
+			pages = new ArrayList<>();
+			pagesInfo.forEach (pi -> pages.add(pi.getPage()));
 
 			modPages = Preprocessor.preprocessDoc(pages);
 			
 			int i = 0;
 			for (Mat page : modPages) {
+				pagesInfo.get(i).setPage (page);
 				i++;
-				Highgui.imwrite("/Users/jorge.rios/Work/bw" + i + ".png", page);
+				//Highgui.imwrite ("/Users/jorge.rios/Work/bw" + i + ".png", page);
 			}
 
-			ExtractImages.savePdf(modPages, "/Users/jorge.rios/Work/base/new PF BAJIO " + index + ".pdf");
+			ExtractImages.savePdfInfo (pagesInfo, "/Users/jorge.rios/Work/base/new " + filename);
 		}
 		//*/
 		
 		
-		
-		
 		long endTime = System.nanoTime();
-
 		long timeElapsed = endTime - startTime;
-
 		System.out.println("Execution time in nanoseconds: " + timeElapsed);
 		System.out.println("Execution time in milliseconds: " + timeElapsed / 1000000);
 	}

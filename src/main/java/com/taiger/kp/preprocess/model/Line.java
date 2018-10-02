@@ -17,7 +17,7 @@ public class Line implements Comparable<Line>{
 	int end;
 	
 	public boolean tooNear (Line line) {
-		if (Math.abs(line.getConstant() - this.constant) <= 5) return true;
+		if (Math.abs(line.getConstant() - this.constant) <= 7) return true;
 		return false;
 	}
 

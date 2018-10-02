@@ -1,6 +1,8 @@
-package com.taiger.kp.preprocess.controller;
+package com.taiger.kp.preprocess.model;
 
 import org.opencv.core.Mat;
+
+import com.taiger.kp.preprocess.controller.Preprocessor;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
