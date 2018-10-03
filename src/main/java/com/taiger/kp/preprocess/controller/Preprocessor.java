@@ -21,6 +21,7 @@ public class Preprocessor {
 	public static String dirStr = "/Users/jorge.rios/Work/base/";
 	
 	public static List<Mat> preprocessDoc (List<Mat> pages) {
+		Assert.notEmpty(pages, "doc shouldn't be empty");
 		List<Mat> modPages = new ArrayList<>();
 		
 		int i = 0;
@@ -53,7 +54,8 @@ public class Preprocessor {
 
 	public static Mat preprocess (Mat mat, int i) {
 		Assert.notNull(mat, "'mat' shouldn't be null");
-		log.info(new Object(){}.getClass().getEnclosingMethod().getName());
+		Assert.isTrue(i >= 0, "index can't be negative");
+		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
 		//if (i != 1) return new Mat();
 		Tunner tunner = new Tunner();
 		
@@ -125,12 +127,13 @@ public class Preprocessor {
 			tunner.grayscale(mat).copyTo(grayscale);
 			mat.release();
 
+			grayscale = tunner.invert(grayscale);
 			Highgui.imwrite("/Users/jorge.rios/Work/gs" + i + fileOutStr, grayscale);
 			//mat = Tunner.rotate(mat);
 			
 			grayscale = tunner.imageThresholding(grayscale);
 			
-			grayscale = tunner.invert(grayscale);
+			//
 
 			//Mat visited = new Mat(grayscale.rows(), grayscale.cols(), CvType.CV_8UC1, new Scalar(255.0));
 			original = grayscale.clone();

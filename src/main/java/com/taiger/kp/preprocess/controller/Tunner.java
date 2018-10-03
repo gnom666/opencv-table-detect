@@ -1746,7 +1746,7 @@ public class Tunner {
 
 			Core.bitwise_not(gray, gray);
 
-			Imgproc.adaptiveThreshold(gray, bw, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 7, 1);
+			Imgproc.adaptiveThreshold(gray, bw, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY, 15, 2);
 			// saveMat(File.createTempFile("WB_mean_", FILE_SUFFIX, resultDirFile), bw);
 
 			// Imgproc.adaptiveThreshold(gray, bw, 255, ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -1779,21 +1779,42 @@ public class Tunner {
 		return result;
 	}
 
-	public boolean isBW(Mat mat) {
-		Assert.notNull(mat, "'mat' shouldn't be null");
-		Mat tmp = new Mat();
+	public boolean isBW (Mat mat) {
+		Assert.notNull (mat, "'mat' shouldn't be null");
+		Mat gray = new Mat ();
 		//log.info(new Object(){}.getClass().getEnclosingMethod().getName());
-		Imgproc.cvtColor(mat, tmp, CvType.CV_8UC1);
-
+		Imgproc.cvtColor(mat, gray, Imgproc.COLOR_BGR2GRAY);
+		Mat bw = imageThresholding(gray);
+		
+		//double comp = compareImages(gray, bw);
+		
+		if (compareImages(gray, bw)) {
+			System.out.println("BW");
+			return true;
+		}	else {
+			System.out.println("not BW");
+			return false;
+		}
+		
+		/*
 		for (int y = 0; y < mat.height(); y++) {
 			for (int x = 0; x < mat.width(); x++) {
-				if (tmp.get(y, x)[0] != 0.0 && tmp.get(y, x)[0] != 255.0) {
+				if (gray.get(y, x)[0] != 0.0 && gray.get(y, x)[0] != 255.0) {
 					return false;
 				}
 			}
 		}
 
-		return true;
+		return true; 
+		*/
+	}
+	
+	
+	static boolean compareImages(Mat mat1, Mat mat2) {
+		Mat sub = new Mat();
+		Core.subtract(mat1, mat2, sub);
+		Scalar ssub= Core.sumElems(sub);
+	    return Core.sumElems(sub).val[0] == 0;
 	}
 
 	public boolean isEmptyBox(Mat mat, int frame) {

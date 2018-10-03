@@ -23,11 +23,11 @@ public class LineDetectionRunnable implements Runnable {
 	private int index;
 	private Mat page;
 	private List<Line> lines;
-	private int side; // 0:H 1:V
+	private int direction; // 0:H 1:V
 
 	@Override
 	public void run() {
-		switch (side) {
+		switch (this.direction) {
 			case Constants.HORIZONTAL:
 				lines = new Tunner().linesStretchH (page, index);
 				break;
