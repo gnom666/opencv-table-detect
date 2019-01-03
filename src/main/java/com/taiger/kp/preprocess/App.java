@@ -54,7 +54,7 @@ public class App {
 //		filenames.add("PF BAJIO 4.pdf");
 //		filenames.add("PF METRO 1.pdf");
 //		filenames.add("PF METRO 2.pdf");
-		filenames.add("PF METRO 3.pdf");
+//		filenames.add("PF METRO 3.pdf");
 //		filenames.add("PF METRO 4.pdf");
 //		filenames.add("PF NORESTE 1.pdf");
 //		filenames.add("PF NORESTE 3.pdf");
@@ -66,6 +66,13 @@ public class App {
 //		filenames.add("PF SUR 2.pdf");
 //		filenames.add("PF SURESTE 2.pdf");
 //		filenames.add("PF SURESTE 3.pdf");
+		
+//		filenames.add("Doc7-2.pdf");
+		filenames.add("Doc63-2.pdf");
+		filenames.add("Doc20-2.pdf");
+//		filenames.add("Doc7.pdf");
+//		filenames.add("Doc63.pdf");
+//		filenames.add("Doc20.pdf");
 		
 		
 		//*

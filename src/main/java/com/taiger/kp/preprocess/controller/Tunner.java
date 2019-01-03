@@ -1789,10 +1789,10 @@ public class Tunner {
 		//double comp = compareImages(gray, bw);
 		
 		if (compareImages(gray, bw)) {
-			System.out.println("BW");
+			//System.out.println("BW");
 			return true;
 		}	else {
-			System.out.println("not BW");
+			//System.out.println("not BW");
 			return false;
 		}
 		
